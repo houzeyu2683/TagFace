@@ -2,11 +2,18 @@ TagFace
 
 conda env create -f environment.yaml
 
+pip install torch torchvision torchaudio moviepy
+conda install 1adrianb::face_alignment
+
+
+pip install torch==2.7.1+cu118 torchvision==0.22.1+cu118 torchaudio==2.7.1+cu118 \
+  -f https://download.pytorch.org/whl/torch_stable.html
+
 
 #conda install -c conda-forge retina-face
 #pip install tf-keras
 
-conda install 1adrianb::face_alignment
+
 conda install conda-forge::pytorch-ignite
 
 

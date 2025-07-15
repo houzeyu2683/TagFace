@@ -136,7 +136,26 @@ class Agent:
     def __init__(self, path: str) -> None:
         self.path = path
         return
-    
+
+    def makeDetection(self, frame: numpy.ndarray) -> bool:
+        response = self.model.get_landmarks(
+            frame, 
+            return_bboxes=True, 
+            return_landmark_score=True
+        )
+        detection = []
+        for landmark, likelihood, prediction in zip(*response):
+            count = numpy.array(sum(likelihood<0.7)).item() # likelihood (landmark)
+            if(count>0): continue
+            box = numpy.array(prediction[:-1]).astype(int)
+            probability = round(float(prediction[-1]), 3)
+            if(probability<0.8): continue
+            shot = Shot(frame, box, landmark)
+            detection += [shot]
+            continue
+        self.detection = detection
+        return(True)
+
     def readVideo(self) -> bool:
         video = moviepy.VideoFileClip(self.path)
         assert (video.fps == 25) and (video.duration >= 1)
@@ -148,7 +167,8 @@ class Agent:
         sequence = {}
         for index, frame in enumerate(agent.video.iter_frames(), start=0):
             second = index / self.video.fps
-            print(f'<Message>: Analyze [{second}, {second+delta}) Interval')
+            unit = round(second + delta, 3)
+            print(f'Analyze [{second}, {unit}) Interval', end='\r')
             self.makeDetection(frame)
             if(self.queue!=[] and self.detection==[]): 
                 # 所有的 queue 都打包成一個完整的片段
@@ -264,25 +284,6 @@ class Agent:
                 path, codec="libx264", audio_codec="aac", logger=None
             )
             continue
-        return(True)
-
-    def makeDetection(self, frame: numpy.ndarray) -> bool:
-        response = self.model.get_landmarks(
-            frame, 
-            return_bboxes=True, 
-            return_landmark_score=True
-        )
-        detection = []
-        for landmark, likelihood, prediction in zip(*response):
-            count = numpy.array(sum(likelihood<0.7)).item() # likelihood (landmark)
-            if(count>0): continue
-            box = numpy.array(prediction[:-1]).astype(int)
-            probability = round(float(prediction[-1]), 3)
-            if(probability<0.8): continue
-            shot = Shot(frame, box, landmark)
-            detection += [shot]
-            continue
-        self.detection = detection
         return(True)
 
     def launchJob(self, checkpoint: str) -> bool:
