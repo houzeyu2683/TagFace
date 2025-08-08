@@ -1,3 +1,9 @@
+
+https://www.youtube.com/playlist?list=PLl7c-EB4E1jFN4aHIdl67vEh3-vFFS_7-
+'https://www.youtube.com/watch?v=B3-sjPhiM2U'
+https://www.youtube.com/shorts/UE6J-XG6I4M
+
+
 TagFace
 
 conda env create -f environment.yaml
