@@ -19,7 +19,7 @@ class Video:
             'no_warnings': True
         }
         with yt_dlp.YoutubeDL(option) as session:
-            response = session.extract_info(link, download=False)
+            response = session.extract_info(self.link, download=False)
             information = response['entries']
             title = [item['title'] for item in information]
             name = [item['id'] for item in information]
@@ -55,9 +55,9 @@ class Video:
                 ]
             },
             'noplaylist': False,
-            'quiet': False,
-            'no_warnings': False,
-            'verbose': True,
+            'quiet': True,
+            'no_warnings': True,
+            'verbose': False,
         }
         with yt_dlp.YoutubeDL(option) as command:
             command.download(link)
@@ -81,3 +81,9 @@ class Video:
         return(True)
 
     pass
+
+link = 'https://www.youtube.com/playlist?list=PL9mUJWHev0KmqJCmdyWNfihoRY6zHTcAn'
+folder = './checkpoint'
+video = Video(link, folder)
+video.searchCatalog(query=None)
+video.saveCatalog()
