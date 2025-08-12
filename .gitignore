@@ -3,6 +3,10 @@ video/
 *.mp4
 *.mkv
 *.csv 
+*.part
+*.ytdl
+*segment.json
+*launch.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

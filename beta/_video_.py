@@ -3,6 +3,9 @@ import pandas
 import os
 import shutil
 import multiprocessing
+import pathlib
+import subprocess
+import re
 
 class Video:
 
@@ -41,49 +44,75 @@ class Video:
         self.catalog = table
         return(True)
 
-    def downloadFile(self, link: str) -> bool:
-        path = os.path.join(self.folder, '%(id)s.%(ext)s')
+    def dumpSource(self, link: str) -> bool:
+        name = link.split("?v=").pop().split("&")[0]
+        if(True):
+            checkpoint = os.path.join(self.folder, 'video')
+            os.makedirs(checkpoint, exist_ok=True)
+            target = os.path.join(checkpoint, f"{name}.mp4")
+            if(os.path.isfile(target)==True): return(True)
+            pass
+        pattern = os.path.join(self.folder, name)
         option = {
             'format': 'bestvideo+bestaudio',
-            'outtmpl': path,
-            'merge_output_format': 'mp4',
-            'postprocessor_args': {
-                'ffmpeg': [
-                    '-r', '25', 
-                    '-ar', '16000',
-                    '-crf', '23'
-                ]
-            },
+            'outtmpl': f"{pattern}.%(ext)s",
             'noplaylist': False,
             'quiet': True,
             'no_warnings': True,
             'verbose': False,
         }
-        with yt_dlp.YoutubeDL(option) as command:
+        command = yt_dlp.YoutubeDL(option)
+        try:
             command.download(link)
             pass
+        except:
+            command.close()
+            return(True)
         command.close()
+        if(os.path.isfile(f"{pattern}.mkv")==True):
+            path = f"{pattern}.mkv"
+            pass
+        elif(os.path.isfile(f"{pattern}.mp4")==True):
+            path = f"{pattern}.mp4"
+            pass
+        else:
+            return(True)
+        command = [
+            "ffmpeg",
+            "-i", path,  # 輸入檔案
+            "-r", "25",        # 設定 FPS
+            "-ar", "16000",    # 設定音頻取樣率
+            "-crf", "23",      # 設定視訊品質
+            target
+        ]
+        try:
+            subprocess.run(command, check=True)
+            pass
+        except:
+            _ = command
+            return(True)
+        _ = command
+        _ = os.remove(path)
         return(True)
 
     def saveCatalog(self) -> bool:
-        checkpoint = os.path.join(self.folder)
-        _ = shutil.rmtree(checkpoint, ignore_errors=True)
-        os.makedirs(checkpoint, exist_ok=True)
-        path = os.path.join(checkpoint, 'catalog.csv')
+        os.makedirs(self.folder, exist_ok=True)
+        path = os.path.join(self.folder, 'catalog.csv')
         if('table'):
             self.catalog.to_csv(path, index=False)
             pass
         loop = self.catalog['link'].tolist()
         with multiprocessing.Pool(processes=4) as pool:
-            pool.map(self.downloadFile, loop)
+            pool.map(self.dumpSource, loop)
             pass
         pool.close()
         return(True)
 
     pass
 
-link = 'https://www.youtube.com/playlist?list=PL9mUJWHev0KmqJCmdyWNfihoRY6zHTcAn'
-folder = './checkpoint'
+link = 'https://www.youtube.com/playlist?list=PL9mUJWHev0Klo61lR1HwHxSvngSnhKAQg'
+folder = './download/PL9mUJWHev0Klo61lR1HwHxSvngSnhKAQg'
 video = Video(link, folder)
 video.searchCatalog(query=None)
 video.saveCatalog()
+
